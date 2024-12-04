@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work-Themed To-Do List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fbc2eb);
+            font-family: 'Arial', sans-serif;
+            color: #343a40;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: #f7f7f7;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #212529;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #0066cc;
+            border-color: #0056b3;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004494;
+        }
+        .btn-outline-success {
+            border-color: #28a745;
+            color: #28a745;
+        }
+        .btn-outline-success:hover {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .list-group-item {
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 15px;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+        }
+        .task-title {
+            flex: 1;
+            border: none;
+            background: none;
+            color: #212529;
+        }
+        .task-title[readonly] {
+            text-decoration: none;
+            color: #212529;
+        }
+        .task-title.done[readonly] {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        footer a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">📝To-Do List</h1>
+
+        <!-- Add Task Form -->
+        <form method="POST" action="{% url 'add_task' %}" class="mb-4">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="title" class="form-control shadow-sm" placeholder="Enter a new task" required>
+                <button class="btn btn-primary shadow-sm" type="submit">Add Task</button>
+            </div>
+        </form>
+
+        <!-- Task List -->
+        <ul class="list-group">
+            {% for task in tasks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center shadow-sm">
+                    <form method="POST" action="{% url 'edit_task' task.id %}" class="d-flex w-100">
+                        {% csrf_token %}
+                        <input 
+                            type="text" 
+                            name="title" 
+                            class="form-control task-title {% if task.is_done %}done{% endif %}" 
+                            value="{{ task.title }}" 
+                            {% if task.is_done %}readonly{% endif %}>
+                        <button class="btn btn-warning btn-sm ms-2 edit-btn" type="button" onclick="toggleEdit(this)">Edit</button>
+                        <button class="btn btn-success btn-sm ms-2 save-btn d-none" type="submit">Save</button>
+                    </form>
+                    {% if not task.is_done %}
+                        <a href="{% url 'done' task.id %}" class="btn btn-outline-success btn-sm">Done</a>
+                    {% endif %}
+                    <a href="{% url 'delete_task' task.id %}" class="btn btn-danger btn-sm ms-2">Delete</a>
+                </li>
+            {% empty %}
+                <li class="list-group-item text-center shadow-sm">No tasks yet! Add a new one above.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        function toggleEdit(button) {
+            const parentForm = button.closest('form');
+            const inputField = parentForm.querySelector('.task-title');
+            const saveButton = parentForm.querySelector('.save-btn');
+
+            if (inputField.readOnly) {
+                // Enable editing
+                inputField.readOnly = false;
+                inputField.classList.remove('done');
+                inputField.focus();
+                button.textContent = 'Cancel';
+                button.classList.replace('btn-warning', 'btn-danger');
+                saveButton.classList.remove('d-none');
+            } else {
+                // Cancel editing
+                inputField.readOnly = true;
+                if (inputField.classList.contains('done')) {
+                    inputField.classList.add('done');
+                }
+                button.textContent = 'Edit';
+                button.classList.replace('btn-danger', 'btn-warning');
+                saveButton.classList.add('d-none');
+            }
+        }
+    </script>
+</body>
+</html>
